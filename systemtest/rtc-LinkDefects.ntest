@@ -1,0 +1,207 @@
+# -*-Perl-*-
+
+# tfs-LinkDefects.ntest -
+#
+# Exercise procedure LinkDefects in EC-DefectTracking-RTC
+#
+# Copyright (c) 2005-2010 Electric Cloud, Inc.
+# All rights reserved
+
+use strict;
+use ECTest;
+use ECSelenium;
+
+# read in setup and tests that are common to all EC-DefectTracking plugins 
+# system tests
+require "$::gTestFileDir/../../EC-DefectTracking/systemtest/ntest.common";
+
+ntest "cfgDoesNotExist", {}, sub {
+
+    # Read the log file and verify its contents.
+    my $data = runFakeCmdcfgDoesNotExist();
+
+    writeFile("$::gCurrentTestDir/cfgDoesNotExist.log","====Job Details====\n====LOG====\n$data\n");
+
+    assertSubstring("Could not find configuration cfgDoesNotExist", $data, "cfgDoesNotExist output");
+};
+
+sub runFakeCmdcfgDoesNotExist
+{
+
+
+    my $log= "Getting ECDefectTracking bootstrap code from /myProject/procedure_helpers/bootstrap
+Running boostrap for cfgDoesNotExist ...
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Cfg..
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Driver..
+Could not find configuration cfgDoesNotExist";
+
+
+    return $log;
+}
+
+ntest "noDefaultProperty", {}, sub {
+
+    # Read the log file and verify its contents.
+    my $data = runFakeCmdrunFakeCmdnoDefaultProperty();
+
+    writeFile("$::gCurrentTestDir/noDefaultProperty.log","====Job Details====\n====LOG====\n$data\n");
+
+    assertSubstring("No defect IDs found, returning", $data, "noDefaultProperty output");
+};
+
+sub runFakeCmdrunFakeCmdnoDefaultProperty
+{
+    my $log= "Getting ECDefectTracking bootstrap code from /myProject/procedure_helpers/bootstrap
+Running boostrap for rtcCfg ...
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Cfg..
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Driver..
+Parsing property /myJob/ecscm_changeLogs for defect IDs
+Error querying for /myJob/ecscm_changeLogs as a property sheet: error [NoSuchProperty]: Invalid property path: Evaluating property '/myJob/ecscm_changeLogs' in jobStep 'runMethod'
+Found job 'job_2970_201103241630'
+Failed to find property 'ecscm_changeLogs'
+Evaluation failed
+Details:
+Evaluating property '/myJob/ecscm_changeLogs' in jobStep 'runMethod'
+Found job 'job_2970_201103241630'
+Failed to find property 'ecscm_changeLogs'
+Evaluation failed
+Trying to query for /myJob/ecscm_changeLogs as property...
+Error querying for /myJob/ecscm_changeLogs as a property: error [NoSuchProperty]: Property '/myJob/ecscm_changeLogs' does not exist
+Details:
+Evaluating property '/myJob/ecscm_changeLogs' in jobStep 'runMethod'
+Found job 'job_2970_201103241630'
+Failed to find property 'ecscm_changeLogs'
+Evaluation failed
+
+Prefix: Defect
+No defect IDs found, returning
+action linkDefects returned:";
+
+    return $log;
+}
+
+ntest "emptyDefaultProperty", {}, sub {
+    
+    # Read the log file and verify its contents.
+    my $data = runFakeCmdemptyDefaultProperty();
+
+    writeFile("$::gCurrentTestDir/emptyDefaultProperty.log","====Job Details====\n====LOG====\n$data\n");
+
+    assertSubstring("No change logs found, returning", $data, "emptyDefaultProperty-logs output");
+    assertSubstring("No defect IDs found, returning", $data, "emptyDefaultProperty-ids output");
+
+};
+
+sub runFakeCmdemptyDefaultProperty
+{
+    my $log= "Getting ECDefectTracking bootstrap code from /myProject/procedure_helpers/bootstrap
+Running boostrap for rtcCfg ...
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Cfg..
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Driver..
+Parsing property /myJob/ecscm_changeLogs for defect IDs
+Error querying for /myJob/ecscm_changeLogs as a property sheet: error [InvalidPropertyValue]: Invalid object type at '/myJob/ecscm_changeLogs': property[name=ecscm_changeLogs,id=39713,value=,parentSheet=propertySheet[id=24225,owner=jobStep[id=18713]]]
+Trying to query for /myJob/ecscm_changeLogs as property...
+No change logs found, returning
+Prefix: Defect
+No defect IDs found, returning
+action linkDefects returned:";
+
+    return $log;
+}
+
+ntest "emptyPropertiesInDefaultPropertySheet", {}, sub {
+   
+    # Read the log file and verify its contents.
+    my $data = runFakeCmdemptyPropertiesInDefaultPropertySheet();
+
+    writeFile("$::gCurrentTestDir/emptyPropertiesInDefaultPropertySheet.log","====Job Details====\n====LOG====\n$data\n");
+
+    assertSubstring("No change logs found, returning", $data, "emptyPropertiesInDefaultPropertySheet-logs output");
+    assertSubstring("No defect IDs found, returning", $data, "emptyPropertiesInDefaultPropertySheet-ids output");
+
+};
+
+sub runFakeCmdemptyPropertiesInDefaultPropertySheet
+{
+    my $log= "Getting ECDefectTracking bootstrap code from /myProject/procedure_helpers/bootstrap
+Running boostrap for rtcCfg ...
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Cfg..
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Driver..
+Parsing property /myJob/ecscm_changeLogs for defect IDs
+No change logs found, returning
+Prefix: Defect 
+No defect IDs found, returning
+action linkDefects returned: ";
+
+    return $log;
+}
+
+ntest "defaultPropertyContainsInaccessibleDefectIDs", {}, sub {
+  
+    # Read the log file and verify its contents.
+    my $data = runFakeCmddefaultPropertyContainsInaccessibleDefectIDs();
+
+    writeFile("$::gCurrentTestDir/defaultPropertyContainsInaccessibleDefectIDs.log","====Job Details====\n====LOG====\n$data\n");
+
+    assertSubstring("No defect found with ID = 99", $data, "defaultPropertyContainsInaccessibleDefectIDs output");
+};
+
+sub runFakeCmddefaultPropertyContainsInaccessibleDefectIDs
+{
+    my $log= "Getting ECDefectTracking bootstrap code from /myProject/procedure_helpers/bootstrap
+Running boostrap for rtcCfg ...
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Cfg..
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Driver..
+Parsing property /myJob/ecscm_changeLogs for defect IDs
+Error querying for /myJob/ecscm_changeLogs as a property sheet: error [InvalidPropertyValue]: Invalid object type at '/myJob/ecscm_changeLogs': property[name=ecscm_changeLogs,id=40352,value=Defect99,parentSheet=propertySheet[id=24551,owner=jobStep[id=19055]]]
+Trying to query for /myJob/ecscm_changeLogs as property...
+Using supplied prefix=Defect to search for defects IDs
+Found defect ID: Defect99
+Prefix: Defect
+RTCConsole build Mbimp,vm https://rtc.electric-cloud.com:9443/ccm QueryItem 99
+No defect found with ID = 99
+Error trying to get RTC item = ID99: 
+action linkDefects returned: 0";
+    
+    return $log;
+}
+
+ntest "customPrefix", {}, sub {
+   
+    # Read the log file and verify its contents.
+    my $data = runFakeCmdcustomPrefix();
+
+    writeFile("$::gCurrentTestDir/jobDetails.log","====Job Details====\n====LOG====\n$data\n");
+
+    assertSubstring('Using supplied prefix=Defect  to search for defects IDs', $data,"customPrefix-prefix output");
+    assertSubstring(outdent('Found defect ID: Defect 11
+Found defect ID: Defect 12
+Found defect ID: Defect 99'), $data, "customPrefix-ids output");
+
+    assertSubstring("Creating link /commander/pages/EC-DefectTracking-RTC-", $data, "customPrefix-link output");
+};
+
+sub runFakeCmdcustomPrefix
+{
+    my $log= "Getting ECDefectTracking bootstrap code from /myProject/procedure_helpers/bootstrap
+Running boostrap for rtcCfg ...
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Cfg..
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Driver..
+Parsing property /myJob/ecscm_changeLogs for defect IDs
+Using supplied prefix=Defect  to search for defects IDs
+Found defect ID: Defect 11
+Found defect ID: Defect 12
+Found defect ID: Defect 99
+Prefix: Defect 
+RTCConsole build Mbimp,vm https://rtc.electric-cloud.com:9443/ccm QueryItem 12
+Name: Defect  12: Step ID: N/A Step Name: N/A Test Case Name: N/A , STATUS=New
+RTCConsole build Mbimp,vm https://rtc.electric-cloud.com:9443/ccm QueryItem 11
+Name: Defect  11: Step ID: N/A Step Name: N/A Test Case Name: N/A , STATUS=New
+RTCConsole build Mbimp,vm https://rtc.electric-cloud.com:9443/ccm QueryItem 99
+No defect found with ID = 99
+Error trying to get RTC item = ID 99: 
+Creating link /commander/pages/EC-DefectTracking-RTC-1.0.0.0/reports?jobId=3046
+action linkDefects returned: ";
+
+    return $log;
+}

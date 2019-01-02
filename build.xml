@@ -1,0 +1,14 @@
+<project name="EC-DefectTracking-RTC" default="package" basedir=".">
+    <description>
+        Build the EC-DefectTracking-RTC plugin
+    </description>
+
+    <property name="buildconfigdir" value="../Plugin-In-A-Box/scripts" />
+    
+    <!-- plugin specific properties -->
+    <property name="pluginKey" value="EC-DefectTracking-RTC" />
+    <property name="pluginVersion" value="1.0" />
+    <property name="gwtModules" value="ecplugins.defectTracking.client.ReportsUpdatedDefects,ecplugins.defectTracking.client.Reports"/>
+    
+    <import file="${buildconfigdir}/buildTargets.xml"/>
+</project>

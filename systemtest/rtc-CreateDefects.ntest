@@ -1,0 +1,204 @@
+# -*-Perl-*-
+# rtc.ntest -
+#
+# Exercise procedure CrateDefects in EC-DefectTracking-RTC
+#
+# Copyright (c) 2005-2010 Electric Cloud, Inc.
+# All rights reserved
+
+use strict;
+use ECTest;
+use ECSelenium;
+require "$::gTestFileDir/../../EC-DefectTracking/systemtest/ntest.common";
+$::gProjectImported = 0;
+$::gConfigCreated = 0;
+
+sub importProject() {
+    assertOK($::N->import({ file =>"$::gTestFileDir/rtc-CreateDefects.xml", path  => '/projects/rtc-CreateDefects', force => 1} ), 'import rtc-CreateDefects project');
+    assertOK($::N->getProcedure('rtc-CreateDefects', 'cfgDoesNotExist'),'cfgDoesNotExist procedure exists');
+    $::gProjectImported = 1;
+} 
+
+sub createConfig() {
+    my $xpath = $::N->runProcedure("$::gPlugin_name", 
+        { procedureName => 'CreateConfiguration', 
+          pollInterval  => '0.2', 
+          timeout       => 600, 
+          actualParameter => [  
+            { actualParameterName => 'config', value => 'rtcCfg' }, 
+            { actualParameterName => 'desc', value => 'RTC configuration' },  
+            { actualParameterName => 'credential', value => 'test' }, 
+            { actualParameterName => 'url', value => 'https://rtc.electric-cloud.com:9443/ccm/' },
+            { actualParameterName => 'project', value => 'RTC Test' }, , 
+        ],
+        credential => [
+            { credentialName => 'test', userName => 'build', password => 'Mbimp,vm', },
+        ],
+        });
+    assertOK($xpath, 'run create configuration procedure');
+    my $jobId = 0;
+    my $status = '';
+    assertDef($xpath, 'runProcedure finished without a timeout');
+    if ($xpath) {
+        $jobId  = $xpath->findvalue('//jobId');
+        $status = $xpath->findvalue('//status');
+        assertTrue($jobId && $jobId ne "",'valid job id');
+        assertEq('completed',$status,"job $jobId complete");
+        if ($status ne 'completed') {
+            assertOK($::N->abortJob($jobId, {force => 1}));
+        }
+    }
+    $xpath = $::N->getJobDetails($jobId);
+    writeFile("$::gCurrentTestDir/createConfiguration.log","====Job Details====\n$xpath->{_xml}\n");
+    $xpath = $::N->getProperty("/projects/$::ECdt/defectTracking_cfgs/rtcCfg/defectTrackingPlugin");
+    assertEq("EC-DefectTracking-RTC",$xpath->findvalue('//value')->string_value, 'configuration type');
+    $xpath = $::N->getCredential("$::ECdt",'rtcCfg');
+    assertEq("build",$xpath->findvalue("//userName")->string_value, 'Credential user');
+    $::gConfigCreated = 1;
+}
+
+sub doSetup() {
+    if(! $::gProjectImported) {
+        importProject();
+    }
+    if (! $::gConfigCreated) {
+        createConfig();
+    }
+}
+
+ntest "cfgDoesNotExist", {}, sub {
+
+    # Read the log file and verify its contents.
+    my $data = runFakeCmdcfgDoesNotExist();
+
+    writeFile("$::gCurrentTestDir/cfgDoesNotExist.log","====Job Details====\n====LOG====\n$data\n");
+
+    assertSubstring("Could not find configuration cfgDoesNotExist", $data, "cfgDoesNotExist output");
+};
+
+sub runFakeCmdcfgDoesNotExist
+{
+    my $log= "Getting ECDefectTracking bootstrap code from /myProject/procedure_helpers/bootstrap
+Running boostrap for cfgDoesNotExist ...
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Cfg..
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Driver..
+Could not find configuration cfgDoesNotExist";
+    
+    return $log;
+}
+
+ntest "noDefectsToCreate", {}, sub {
+
+    # Read the log file and verify its contents.
+    my $data = runFakeCmdnoDefectsToCreate();
+
+    writeFile("$::gCurrentTestDir/noDefectsToCreate.log","====Job Details====\n====LOG====\n$data\n");
+
+    assertSubstring("No Errors, so no Defects to create", $data, "noDefectsToCreate output");
+};
+
+sub runFakeCmdnoDefectsToCreate
+{
+    my $log= "Getting ECDefectTracking bootstrap code from /myProject/procedure_helpers/bootstrap
+Running boostrap for TFSCfgTestServer ...
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Cfg..
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Driver..
+No Errors, so no Defects to create
+action createDefects returned: 0";
+    
+    return $log;
+}
+
+ntest "propertiesContainsOneDefect", {}, sub {
+
+    # Read the log file and verify its contents.
+    my $data = runfakepropertiesContainsOneDefect();
+
+    writeFile("$::gCurrentTestDir/propertiesContainsOneDefect.log","====Job Details====\n====LOG====\n$data\n");
+
+    assertSubstring("Trying to get Property /myJob/ecTestFailures/Step35469-testBlockUnblock", $data, "propertiesContainsOneDefect output");
+};
+
+sub runfakepropertiesContainsOneDefect
+{
+    my $log= "Getting ECDefectTracking bootstrap code from /myProject/procedure_helpers/bootstrap
+Running boostrap for rtcCfg ...
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Cfg..
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Driver..
+Trying to get Property /myJob/ecTestFailures/Step35469-testBlockUnblock 
+RTCConsole build Mbimp,vm https://rtc.electric-cloud.com:9443/ccm/ AddItem \"RTC Test\" \"Step ID: 35469 Step Name: step1 Test Case Name: testBlockUnblock \"
+Creating link /commander/pages/EC-DefectTracking-RTC-1.0.0.0/reports?jobId=3149
+action createDefects returned: ";
+    return $log;
+}
+
+ntest "propertiesContainsTwoDefects", {}, sub {
+
+    # Read the log file and verify its contents.
+    my $data = runfakepropertiesContainsTwoDefects();
+
+    writeFile("$::gCurrentTestDir/propertiesContainsTwoDefects.log","====Job Details====\n====LOG====\n$data\n");
+
+    assertSubstring("Trying to get Property /myJob/ecTestFailures/Step35469-testBlockUnblock", $data, "propertiesContainsTwoDefects output");
+    assertSubstring("Trying to get Property /myJob/ecTestFailures/Step35469-testBlockUnblock2", $data, "propertiesContainsTwoDefects output");
+};
+
+sub runfakepropertiesContainsTwoDefects
+{
+    my $log= "Getting ECDefectTracking bootstrap code from /myProject/procedure_helpers/bootstrap
+Running boostrap for rtcCfg ...
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Cfg..
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Driver..
+Trying to get Property /myJob/ecTestFailures/Step35469-testBlockUnblock 
+RTCConsole build Mbimp,vm https://rtc.electric-cloud.com:9443/ccm/ AddItem \"RTC Test\" \"Step ID: 35469 Step Name: step1 Test Case Name: testBlockUnblock \"
+Trying to get Property /myJob/ecTestFailures/Step35469-testBlockUnblock2 
+RTCConsole build Mbimp,vm https://rtc.electric-cloud.com:9443/ccm/ AddItem \"RTC Test\" \"Step ID: 35469 Step Name: step1 Test Case Name: testBlockUnblock2 \"
+Creating link /commander/pages/EC-DefectTracking-RTC-1.0.0.0/reports?jobId=3150
+action createDefects returned:";
+    return $log;
+}
+
+ntest "reportLinkCreated", {}, sub {
+
+    # Read the log file and verify its contents.
+    my $data = runfakereportLinkCreated();
+
+    writeFile("$::gCurrentTestDir/reportLinkCreated.log","====Job Details====\n====LOG====\n$data\n");
+
+    assertSubstring("Creating link /commander/pages/EC-DefectTracking-RTC-", $data, "reportLinkCreated output");
+};
+
+sub runfakereportLinkCreated
+{
+    my $log= "Getting ECDefectTracking bootstrap code from /myProject/procedure_helpers/bootstrap
+Running boostrap for rtcCfg ...
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Cfg..
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Driver..
+Trying to get Property /myJob/ecTestFailures/Step35469-testBlockUnblock 
+RTCConsole build Mbimp,vm https://rtc.electric-cloud.com:9443/ccm/ AddItem \"RTC Test\" \"Step ID: 35469 Step Name: step1 Test Case Name: testBlockUnblock \"
+Creating link /commander/pages/EC-DefectTracking-RTC-1.0.0.0/reports?jobId=3151
+action createDefects returned:";
+    return $log;
+}
+
+ntest "reportLinkCreatedManual", {}, sub {
+
+    # Read the log file and verify its contents.
+    my $data = runfakereportLinkCreatedManual();
+
+    writeFile("$::gCurrentTestDir/reportLinkCreatedManual.log","====Job Details====\n====LOG====\n$data\n");
+
+    assertSubstring("Creating link /commander/pages/EC-DefectTracking-RTC-", $data, "reportLinkCreatedManual output");
+};
+
+sub runfakereportLinkCreatedManual
+{
+    my $log= "Getting ECDefectTracking bootstrap code from /myProject/procedure_helpers/bootstrap
+Running boostrap for rtcCfg ...
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Cfg..
+Loading /plugins/EC-DefectTracking-1.1.4.0/project/defectTracking_driver/ECDefectTracking::Base::Driver..
+Trying to get Property /myJob/ecTestFailures/Step35469-testBlockUnblock 
+Creating link /commander/pages/EC-DefectTracking-RTC-1.0.0.0/reports?jobId=3152
+action createDefects returned: ";
+    return $log;
+}

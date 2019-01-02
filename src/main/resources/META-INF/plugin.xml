@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+    <key>@PLUGIN_KEY@</key>
+    <version>@PLUGIN_VERSION@</version>
+    <label>@PLUGIN_KEY@</label>
+    <description>Rational Team Concert plugin</description>
+    <author>Electric Cloud</author>
+    <authorUrl>http://www.electric-cloud.com/support</authorUrl>
+    <commander-version min="4.1"/>
+    <depends min="1.0">EC-DefectTracking</depends>
+    <category>Defect Tracking</category>
+    <customTypes>
+        <customType name="reports">
+            <displayName>Display Rational Team Concert Report</displayName>
+            <description>description for Rational Team Concert reports custom type.</description>
+            <page pageName="rtcReports" definition="pages/reports.xml" />
+        </customType>
+    </customTypes>
+    <components>
+        <component name="Reports">
+            <javascript>war/ecplugins.defectTracking.Reports/ecplugins.defectTracking.Reports.nocache.js</javascript>
+        </component>
+    </components>
+    <help>EC-DefectTracking-RTC_help.xml</help>
+</plugin>
