@@ -20,7 +20,7 @@ buildscript {
 
 group = 'com.electriccloud'
 description = 'Plugins : EC-DefectTracking-RTC'
-version = '2.1.1'
+version = '2.1.2'
 
 apply plugin: 'flow-gradle-plugin'
 apply plugin: 'license'

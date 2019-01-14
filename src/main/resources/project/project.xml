@@ -4,6 +4,12 @@
   <project>
     <projectName>@PLUGIN_KEY@-@PLUGIN_VERSION@</projectName>
     <propertySheet>
+      <!-- Improvement for ECPDEFECTTRACKINGRTC-7 -->
+      <property>
+        <propertyName>ec_icon</propertyName>
+        <value>images/icon-plugin.svg</value>
+      </property>
+      <!-- End of improvement for ECPDEFECTTRACKINGRTC-7 -->
       <property>
         <propertyName>ec_setup</propertyName>
         <value></value>
