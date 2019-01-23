@@ -9,6 +9,7 @@
     <commander-version min="4.1"/>
     <depends min="1.0">EC-DefectTracking</depends>
     <category>Defect Tracking</category>
+    <ecSupportLevel>10</ecSupportLevel>
     <customTypes>
         <customType name="reports">
             <displayName>Display Rational Team Concert Report</displayName>
